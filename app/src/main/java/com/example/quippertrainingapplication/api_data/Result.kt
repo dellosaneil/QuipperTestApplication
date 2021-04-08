@@ -1,5 +1,9 @@
 package com.example.quippertrainingapplication.api_data
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class Result(
     val apiUrl: String,
     val id: String,
@@ -12,4 +16,4 @@ data class Result(
     val webPublicationDate: String,
     val webTitle: String,
     val webUrl: String
-)
+): Parcelable
