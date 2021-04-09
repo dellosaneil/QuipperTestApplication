@@ -12,6 +12,7 @@ import com.example.quippertrainingapplication.api_data.Response
 import com.example.quippertrainingapplication.databinding.FragmentHomeBinding
 import com.example.quippertrainingapplication.repository.Repository
 import io.reactivex.Observer
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 
@@ -48,17 +49,18 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener {
         super.onStart()
         createRecyclerView()
         homeViewModel.newsArticles()
-//            ?.subscribeOn(Schedulers.io())
-//            ?.subscribe(newsArticlesObserver)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            ?.subscribe(newsArticlesObserver)
     }
 
-    private val newsArticlesObserver = object : Observer<Response> {
+    private val newsArticlesObserver : Observer<Response> = object : Observer<Response> {
         override fun onSubscribe(d: Disposable) {
             Log.i(TAG, "onSubscribe: ")
         }
 
-        override fun onNext(t: Response) {
-            Log.i(TAG, "onNext: ${t.results}")
+        override fun onNext(newReponse: Response) {
+            homeAdapter.updateResultList(newReponse.results)
         }
 
         override fun onError(e: Throwable) {
