@@ -61,8 +61,21 @@ class HomeAdapter(private val listener: HomeAdapterListener) :
             binding.homeRVArticleTitle.text = result.webTitle
             binding.homeRVPillarName.text = result.pillarName
             binding.homeRVPublishedDate.text = result.webPublicationDate.substring(0, 10)
+            imagePillar(pillarDrawable(result.type))
+
+        }
+
+        private fun pillarDrawable(typeName: String): Int {
+            return when(typeName){
+                "article" -> R.drawable.ic_article_85
+                "liveblog" -> R.drawable.ic_liveblog_85
+                else -> R.drawable.ic_navigate_next_24
+            }
+        }
+
+        private fun imagePillar(type: Int) {
             Glide.with(binding.root)
-                .load(result.webUrl)
+                .load(type)
                 .into(binding.homeRVImage)
         }
 

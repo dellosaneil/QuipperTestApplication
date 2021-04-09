@@ -9,12 +9,13 @@
     tools:context="home.HomeFragment">
 
     <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/homeFragment_searchView"
+        android:id="@+id/homeFragment_toolbar"
         android:layout_width="0dp"
         android:layout_height="?attr/actionBarSize"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/home_menu" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/homeFragment_rv"
@@ -23,8 +24,18 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/homeFragment_searchView"
+        app:layout_constraintTop_toBottomOf="@+id/homeFragment_toolbar"
         tools:listitem="@layout/item_list_home" />
+
+    <ProgressBar
+        android:id="@+id/homeFragment_progressBar"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/homeFragment_rv"
+        app:layout_constraintTop_toBottomOf="@+id/homeFragment_toolbar" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/homeFragment_button"

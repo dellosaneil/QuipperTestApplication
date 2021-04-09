@@ -5,20 +5,20 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.quippertrainingapplication.api_data.Response
+import com.example.quippertrainingapplication.R
 import com.example.quippertrainingapplication.databinding.FragmentHomeBinding
 import com.example.quippertrainingapplication.repository.Repository
-import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 
 private const val TAG = "HomeFragment"
 
-class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener {
+class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQueryTextListener {
 
 
     private var _binding: FragmentHomeBinding? = null
@@ -48,32 +48,15 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener {
     override fun onStart() {
         super.onStart()
         createRecyclerView()
-        homeViewModel.newsArticles()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            ?.subscribe(newsArticlesObserver)
+        prepareSearchView()
     }
 
-    private val newsArticlesObserver : Observer<Response> = object : Observer<Response> {
-        override fun onSubscribe(d: Disposable) {
-            Log.i(TAG, "onSubscribe: ")
-        }
-
-        override fun onNext(newReponse: Response) {
-            homeAdapter.updateResultList(newReponse.results)
-        }
-
-        override fun onError(e: Throwable) {
-            Log.i(TAG, "onError: ${e.message}")
-        }
-
-        override fun onComplete() {
-            Log.i(TAG, "onComplete: ")
-        }
-
-
+    private fun prepareSearchView(){
+        val search = binding.homeFragmentToolbar.menu?.findItem(R.id.homeMenu_searchView)
+        val searchView = search?.actionView as? SearchView
+        searchView?.isSubmitButtonEnabled = false
+        searchView?.setOnQueryTextListener(this)
     }
-
 
     private fun createRecyclerView() {
         binding.homeFragmentRv.apply {
@@ -89,5 +72,27 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener {
 
     override fun articleClicked(position: Int) {
         TODO("Not yet implemented")
+    }
+
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        return false
+    }
+
+    override fun onQueryTextChange(query: String?): Boolean {
+        binding.homeFragmentProgressBar.visibility = View.VISIBLE
+        query?.let{ q ->
+            homeViewModel.newsArticles(q)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext {
+                    homeAdapter.updateResultList(it.results)
+                    Toast.makeText(requireContext(), it.total.toString(), Toast.LENGTH_LONG).show()
+                }
+                .doOnComplete{binding.homeFragmentProgressBar.visibility = View.GONE}
+                .doOnError{ Log.i(TAG, "onStart: ${it.message}")}
+                ?.subscribe()
+        }
+
+        return true
     }
 }
