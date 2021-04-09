@@ -10,6 +10,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.quippertrainingapplication.R
 import com.example.quippertrainingapplication.databinding.FragmentHomeBinding
 import com.example.quippertrainingapplication.repository.Repository
@@ -37,6 +38,9 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         ).get(HomeViewModel::class.java)
     }
 
+    private var toast: Toast? = null
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -51,7 +55,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         prepareSearchView()
     }
 
-    private fun prepareSearchView(){
+    private fun prepareSearchView() {
         val search = binding.homeFragmentToolbar.menu?.findItem(R.id.homeMenu_searchView)
         val searchView = search?.actionView as? SearchView
         searchView?.isSubmitButtonEnabled = false
@@ -62,6 +66,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         binding.homeFragmentRv.apply {
             adapter = homeAdapter
             layoutManager = LinearLayoutManager(requireContext())
+            addOnScrollListener(myScrollListener)
         }
     }
 
@@ -79,20 +84,48 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
     }
 
     override fun onQueryTextChange(query: String?): Boolean {
-        binding.homeFragmentProgressBar.visibility = View.VISIBLE
-        query?.let{ q ->
-            homeViewModel.newsArticles(q)
+        query?.let { nonNullQuery ->
+            homeViewModel.newsArticles(nonNullQuery)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext {
-                    homeAdapter.updateResultList(it.results)
-                    Toast.makeText(requireContext(), it.total.toString(), Toast.LENGTH_LONG).show()
+                .map {
+                    it.results
                 }
-                .doOnComplete{binding.homeFragmentProgressBar.visibility = View.GONE}
-                .doOnError{ Log.i(TAG, "onStart: ${it.message}")}
+                .doOnSubscribe {
+                    binding.homeFragmentProgressBar.visibility = View.VISIBLE
+                }
+                .doOnNext {
+                    homeAdapter.updateResultList(it)
+                }
+                .doOnComplete {
+                    binding.homeFragmentProgressBar.visibility = View.GONE
+                    binding.homeFragmentRv.smoothScrollToPosition(0)
+                }
+                .doOnError {
+                    Log.i(TAG, "onQueryTextChange: ${it.message}")
+                }
                 ?.subscribe()
         }
-
         return true
     }
+
+    private fun handleToast(message: String) {
+        toast?.cancel()
+        toast = Toast.makeText(requireContext(), message, Toast.LENGTH_LONG)
+        toast?.show()
+    }
+
+    private val myScrollListener : RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            if (dy > 0 && binding.homeFragmentButton.visibility == View.VISIBLE) {
+                binding.homeFragmentButton.hide()
+            } else if (dy < 0 && binding.homeFragmentButton.visibility == View.GONE) {
+                binding.homeFragmentButton.show()
+            }
+        }
+    }
+
+
+
 }
