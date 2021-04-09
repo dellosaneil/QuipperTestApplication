@@ -21,15 +21,12 @@ private const val TAG = "HomeFragment"
 
 class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQueryTextListener {
 
-
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private val homeAdapter: HomeAdapter by lazy { HomeAdapter(this) }
     private val repository: Repository by lazy { Repository() }
     private val homeViewModelFactory: HomeFragmentViewModelFactory by lazy {
-        HomeFragmentViewModelFactory(
-            repository
-        )
+        HomeFragmentViewModelFactory(repository)
     }
     private val homeViewModel: HomeViewModel by lazy {
         ViewModelProvider(
@@ -37,9 +34,9 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
             homeViewModelFactory
         ).get(HomeViewModel::class.java)
     }
-
     private var toast: Toast? = null
-
+    private var queryText: String = ""
+    private var pageNumber = 1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,6 +50,18 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         super.onStart()
         createRecyclerView()
         prepareSearchView()
+        homeViewModel.getNewsArticles()
+            .doOnNext { homeAdapter.updateResultList(it.results)}
+            .doOnComplete { binding.homeFragmentProgressBar.visibility = View.GONE }
+            .subscribe().isDisposed
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.homeFragmentButton.setOnClickListener {
+            homeViewModel.newsArticles(queryText, ++pageNumber)
+            Log.i(TAG, "onResume: ")
+        }
     }
 
     private fun prepareSearchView() {
@@ -85,26 +94,10 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
 
     override fun onQueryTextChange(query: String?): Boolean {
         query?.let { nonNullQuery ->
+            pageNumber = 1
+            queryText = nonNullQuery
+            binding.homeFragmentProgressBar.visibility = View.VISIBLE
             homeViewModel.newsArticles(nonNullQuery)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .map {
-                    it.results
-                }
-                .doOnSubscribe {
-                    binding.homeFragmentProgressBar.visibility = View.VISIBLE
-                }
-                .doOnNext {
-                    homeAdapter.updateResultList(it)
-                }
-                .doOnComplete {
-                    binding.homeFragmentProgressBar.visibility = View.GONE
-                    binding.homeFragmentRv.smoothScrollToPosition(0)
-                }
-                .doOnError {
-                    Log.i(TAG, "onQueryTextChange: ${it.message}")
-                }
-                ?.subscribe()
         }
         return true
     }
@@ -115,17 +108,15 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         toast?.show()
     }
 
-    private val myScrollListener : RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
-        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-            super.onScrolled(recyclerView, dx, dy)
-            if (dy > 0 && binding.homeFragmentButton.visibility == View.VISIBLE) {
-                binding.homeFragmentButton.hide()
-            } else if (dy < 0 && binding.homeFragmentButton.visibility == View.GONE) {
-                binding.homeFragmentButton.show()
+    private val myScrollListener: RecyclerView.OnScrollListener =
+        object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dy > 0 && binding.homeFragmentButton.visibility == View.VISIBLE) {
+                    binding.homeFragmentButton.hide()
+                } else if (dy < 0 && binding.homeFragmentButton.visibility == View.GONE) {
+                    binding.homeFragmentButton.show()
+                }
             }
         }
-    }
-
-
-
 }

@@ -43,7 +43,6 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         app:fabSize="mini"
-        android:visibility="gone"
         android:layout_marginBottom="16dp"
         android:src="@drawable/ic_navigate_next_24"
         app:layout_constraintBottom_toBottomOf="parent"
