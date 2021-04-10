@@ -6,4 +6,7 @@
     <string name="homeMenu_search">Search…</string>
     <string name="homeFragment_noNextPage">No next page</string>
 
+    <string name="bottomNav_guardianApi">Guardian</string>
+    <string name="bottomNav_crpytoApi">Cryptocurrency</string>
+
 </resources>

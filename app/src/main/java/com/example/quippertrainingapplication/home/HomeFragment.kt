@@ -122,7 +122,6 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         query?.let { nonNullQuery ->
             pageNumber = 1
             queryText = nonNullQuery
-//            binding.homeFragmentProgressBar.visibility = View.VISIBLE
             homeViewModel.newsArticles(nonNullQuery)
         }
         return true

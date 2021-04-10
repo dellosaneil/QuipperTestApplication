@@ -9,13 +9,20 @@
         android:name="com.example.quippertrainingapplication.home.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" >
-        <action
-            android:id="@+id/home_article"
-            app:destination="@id/articleFragment" />
     </fragment>
     <fragment
-        android:id="@+id/articleFragment"
-        android:name="com.example.quippertrainingapplication.ArticleFragment"
-        android:label="fragment_article"
-        tools:layout="@layout/fragment_article" />
+        android:id="@+id/cryptoFragment"
+        android:name="com.example.quippertrainingapplication.CryptoFragment"
+        android:label="fragment_crypto"
+        tools:layout="@layout/fragment_crypto" >
+        <action
+            android:id="@+id/crypto_compare"
+            app:destination="@id/compareFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/compareFragment"
+        android:name="com.example.quippertrainingapplication.CompareFragment"
+        android:label="fragment_compare"
+        tools:layout="@layout/fragment_compare" />
+
 </navigation>

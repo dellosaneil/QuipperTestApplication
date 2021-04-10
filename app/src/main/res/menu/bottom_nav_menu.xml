@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <item android:id="@+id/homeFragment"
+        android:title="@string/bottomNav_guardianApi"
+        android:icon="@drawable/ic_newspaper_36"/>
+
+    <item android:id="@+id/cryptoFragment"
+        android:title="@string/bottomNav_crpytoApi"
+        android:icon="@drawable/ic_crpyto_36"/>
+
+
+</menu>
