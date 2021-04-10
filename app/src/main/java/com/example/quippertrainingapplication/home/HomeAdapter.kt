@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.quippertrainingapplication.R
-import com.example.quippertrainingapplication.api_data.Result
+import com.example.quippertrainingapplication.api_data.guardian.Result
 import com.example.quippertrainingapplication.databinding.ItemListHomeBinding
 import java.util.*
 

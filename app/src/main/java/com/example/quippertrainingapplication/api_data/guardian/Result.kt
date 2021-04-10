@@ -1,4 +1,4 @@
-package com.example.quippertrainingapplication.api_data
+package com.example.quippertrainingapplication.api_data.guardian
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

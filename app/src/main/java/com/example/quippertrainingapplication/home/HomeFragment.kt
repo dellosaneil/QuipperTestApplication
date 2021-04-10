@@ -13,11 +13,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.quippertrainingapplication.R
 import com.example.quippertrainingapplication.RecyclerViewDecorator
-import com.example.quippertrainingapplication.api_data.Result
+import com.example.quippertrainingapplication.api_data.guardian.Result
 import com.example.quippertrainingapplication.databinding.FragmentHomeBinding
 import com.example.quippertrainingapplication.repository.Repository
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers.io
 
 private const val TAG = "HomeFragment"
 

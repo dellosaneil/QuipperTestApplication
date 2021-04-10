@@ -12,7 +12,7 @@
     </fragment>
     <fragment
         android:id="@+id/cryptoFragment"
-        android:name="com.example.quippertrainingapplication.CryptoFragment"
+        android:name="com.example.quippertrainingapplication.cryptocurrency.CryptoFragment"
         android:label="fragment_crypto"
         tools:layout="@layout/fragment_crypto" >
         <action
@@ -21,7 +21,7 @@
     </fragment>
     <fragment
         android:id="@+id/compareFragment"
-        android:name="com.example.quippertrainingapplication.CompareFragment"
+        android:name="com.example.quippertrainingapplication.cryptocurrency.CompareFragment"
         android:label="fragment_compare"
         tools:layout="@layout/fragment_compare" />
 

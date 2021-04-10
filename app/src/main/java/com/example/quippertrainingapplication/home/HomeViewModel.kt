@@ -2,7 +2,7 @@ package com.example.quippertrainingapplication.home
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.example.quippertrainingapplication.api_data.Response
+import com.example.quippertrainingapplication.api_data.guardian.Response
 import com.example.quippertrainingapplication.repository.Repository
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers.io

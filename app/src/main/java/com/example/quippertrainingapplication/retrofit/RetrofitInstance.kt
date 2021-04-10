@@ -15,4 +15,17 @@ object RetrofitInstance {
     val retrofitApi : RetrofitInterface by lazy{
         retrofit.create(RetrofitInterface::class.java)
     }
+
+    private val cryptoRetrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.coincap.io/v2/")
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    val cryptoApi by lazy {
+        cryptoRetrofit.create(RetrofitInterface::class.java)
+    }
+
 }

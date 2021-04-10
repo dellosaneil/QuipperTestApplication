@@ -9,4 +9,6 @@
     <string name="bottomNav_guardianApi">Guardian</string>
     <string name="bottomNav_crpytoApi">Cryptocurrency</string>
 
+    <string name="crypto_liveGraph">Live Graph</string>
+
 </resources>

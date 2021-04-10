@@ -98,6 +98,9 @@ dependencies {
     implementation "io.reactivex.rxjava2:rxjava:$rxjava2Version"
     implementation "io.reactivex.rxjava2:rxandroid:$rxjava2AndroidVersion"
 
+//    Android Charting
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
 
 
 

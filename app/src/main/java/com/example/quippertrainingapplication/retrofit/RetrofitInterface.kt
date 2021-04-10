@@ -1,6 +1,7 @@
 package com.example.quippertrainingapplication.retrofit
 
-import com.example.quippertrainingapplication.api_data.NewsArticles
+import com.example.quippertrainingapplication.api_data.crypto.Crypto
+import com.example.quippertrainingapplication.api_data.guardian.NewsArticles
 import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -21,5 +22,8 @@ interface RetrofitInterface {
         @Query("api-key")
         apiKey : String
     ) : Single<NewsArticles>
+
+    @GET("assets")
+    fun retrieveFromCryptoApi() : Single<Crypto>
 
 }
