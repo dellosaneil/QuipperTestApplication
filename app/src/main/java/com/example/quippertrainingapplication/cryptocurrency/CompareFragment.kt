@@ -1,20 +1,22 @@
 package com.example.quippertrainingapplication.cryptocurrency
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.quippertrainingapplication.R
+import com.example.quippertrainingapplication.api_data.crypto.Bitcoin
 import com.example.quippertrainingapplication.databinding.FragmentCompareBinding
-import com.example.quippertrainingapplication.databinding.FragmentCryptoBinding
-import com.example.quippertrainingapplication.home.HomeFragmentViewModelFactory
-import com.example.quippertrainingapplication.home.HomeViewModel
 import com.example.quippertrainingapplication.repository.CryptoRepository
-import com.example.quippertrainingapplication.repository.Repository
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
+import io.reactivex.android.schedulers.AndroidSchedulers
 
 
+private const val TAG = "CompareFragment"
 class CompareFragment : Fragment() {
     private var _binding: FragmentCompareBinding? = null
     private val binding get() = _binding!!
@@ -35,8 +37,25 @@ class CompareFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCompareBinding.inflate(inflater, container, false)
-        compareViewModel
+        compareViewModel.retrieveCryptoStatus()
+            .subscribeOn(AndroidSchedulers.mainThread())
+            .doOnNext{
+                plotPoints(it)
+            }.subscribe()
         return binding.root
+    }
+
+    private fun plotPoints(bitcoinList: List<Bitcoin>?) {
+        bitcoinList?.let{
+            val entries = mutableListOf<Entry>()
+            it.forEachIndexed { index, bitcoin ->
+                entries.add(Entry(index.toFloat(), bitcoin.data.priceUsd.toFloat()))
+            }
+            val dataSet = LineDataSet(entries, "Bitcoin Price")
+            val lineData = LineData(dataSet)
+            binding.compareFragmentCryptoStatus.data = lineData
+            binding.compareFragmentCryptoStatus.invalidate()
+        }
     }
 
 

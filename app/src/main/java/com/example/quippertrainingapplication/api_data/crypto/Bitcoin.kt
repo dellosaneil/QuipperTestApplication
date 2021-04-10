@@ -1,6 +1,6 @@
 package com.example.quippertrainingapplication.api_data.crypto
 
-data class Crypto(
-    val `data`: List<Data>,
+data class Bitcoin(
+    val `data`: Data,
     val timestamp: Long
 )
