@@ -26,9 +26,8 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
             .subscribeOn(io())
             .doOnSubscribe { observerLoadingState.onNext(true) }
             .map { it.response }
-            .distinct()
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext {
+            .doOnSuccess {
                 publishSubject.onNext(it)
                 observerLoadingState.onNext(false)
             }

@@ -1,8 +1,7 @@
 package com.example.quippertrainingapplication.retrofit
 
 import com.example.quippertrainingapplication.api_data.NewsArticles
-import io.reactivex.Observable
-
+import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -21,6 +20,6 @@ interface RetrofitInterface {
         pageNumber : Int,
         @Query("api-key")
         apiKey : String
-    ) : Observable<NewsArticles>
+    ) : Single<NewsArticles>
 
 }

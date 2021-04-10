@@ -83,7 +83,6 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         binding.homeFragmentButton.setOnClickListener {
             if(pageNumber != maxPage) {
                 homeViewModel.newsArticles(queryText, ++pageNumber)
-//                binding.homeFragmentProgressBar.visibility = View.VISIBLE
             }else{
                 handleToast(getString(R.string.homeFragment_noNextPage))
             }
