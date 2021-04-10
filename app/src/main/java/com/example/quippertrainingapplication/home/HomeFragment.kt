@@ -12,12 +12,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.quippertrainingapplication.R
-import com.example.quippertrainingapplication.api_data.Response
+import com.example.quippertrainingapplication.RecyclerViewDecorator
 import com.example.quippertrainingapplication.api_data.Result
 import com.example.quippertrainingapplication.databinding.FragmentHomeBinding
 import com.example.quippertrainingapplication.repository.Repository
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import io.reactivex.schedulers.Schedulers.io
 
 private const val TAG = "HomeFragment"
 
@@ -53,7 +53,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
 
     override fun onStart() {
         super.onStart()
-        createRecyclerView()
+        setUpRecyclerView()
         prepareSearchView()
         homeViewModel.getNewsArticles()
             .doOnNext {
@@ -61,11 +61,21 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
                 binding.homeFragmentProgressBar.visibility = View.GONE
                 articleList = it.results
                 maxPage = it.pages
+                binding.homeFragmentButton.show()
+                binding.homeFragmentRv.smoothScrollToPosition(0)
             }
             .doOnError{
                 Log.i(TAG, "onStart: ${it.message}")
             }
             .subscribe()
+        homeViewModel.getLoadingState()
+            .doOnNext {
+                if(it){
+                    binding.homeFragmentProgressBar.visibility = View.VISIBLE
+                }else{
+                    binding.homeFragmentProgressBar.visibility = View.GONE
+                }
+            }.subscribe()
     }
 
     override fun onResume() {
@@ -73,7 +83,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         binding.homeFragmentButton.setOnClickListener {
             if(pageNumber != maxPage) {
                 homeViewModel.newsArticles(queryText, ++pageNumber)
-                binding.homeFragmentProgressBar.visibility = View.VISIBLE
+//                binding.homeFragmentProgressBar.visibility = View.VISIBLE
             }else{
                 handleToast(getString(R.string.homeFragment_noNextPage))
             }
@@ -87,11 +97,12 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         searchView?.setOnQueryTextListener(this)
     }
 
-    private fun createRecyclerView() {
+    private fun setUpRecyclerView() {
         binding.homeFragmentRv.apply {
             adapter = homeAdapter
             layoutManager = LinearLayoutManager(requireContext())
             addOnScrollListener(myScrollListener)
+            addItemDecoration(RecyclerViewDecorator(7,10))
         }
     }
 
@@ -112,7 +123,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         query?.let { nonNullQuery ->
             pageNumber = 1
             queryText = nonNullQuery
-            binding.homeFragmentProgressBar.visibility = View.VISIBLE
+//            binding.homeFragmentProgressBar.visibility = View.VISIBLE
             homeViewModel.newsArticles(nonNullQuery)
         }
         return true

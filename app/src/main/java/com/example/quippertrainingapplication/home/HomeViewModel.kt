@@ -7,24 +7,30 @@ import com.example.quippertrainingapplication.repository.Repository
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers.io
 import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
 
 
 private const val TAG = "HomeViewModel"
 
 class HomeViewModel(private val repository: Repository) : ViewModel() {
 
-    private var behaviorSubject : BehaviorSubject<Response>  = BehaviorSubject.create()
+    private var publishSubject: PublishSubject<Response> = PublishSubject.create()
+    private var observerLoadingState: BehaviorSubject<Boolean> =
+        BehaviorSubject.createDefault(false)
 
-    fun getNewsArticles() : BehaviorSubject<Response> = behaviorSubject
+    fun getNewsArticles(): PublishSubject<Response> = publishSubject
+    fun getLoadingState() : BehaviorSubject<Boolean> = observerLoadingState
 
-    fun newsArticles(query: String, pageNumber : Int = 1){
+    fun newsArticles(query: String, pageNumber: Int = 1) {
         repository.retrieveFromApi(query = query, pageNumber = pageNumber)
             .subscribeOn(io())
-            .map{ it.response }
+            .doOnSubscribe { observerLoadingState.onNext(true) }
+            .map { it.response }
             .distinct()
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext{
-                behaviorSubject.onNext(it)
+            .doOnNext {
+                publishSubject.onNext(it)
+                observerLoadingState.onNext(false)
             }
             .doOnError {
                 Log.i(TAG, "newsArticles: ${it.message}")

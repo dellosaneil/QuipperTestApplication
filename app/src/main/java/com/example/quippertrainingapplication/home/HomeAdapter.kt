@@ -44,13 +44,9 @@ class HomeAdapter(private val listener: HomeAdapterListener) :
     ) : DiffUtil.Callback() {
         override fun getOldListSize() = oldItemList.size
         override fun getNewListSize() = newItemList.size
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int) =
-            oldItemList[oldItemPosition].webUrl == newItemList[newItemPosition].webUrl
-
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int) =
-            oldItemList[oldItemPosition] == newItemList[newItemPosition]
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int) = oldItemList[oldItemPosition].webUrl == newItemList[newItemPosition].webUrl
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int) = oldItemList[oldItemPosition] == newItemList[newItemPosition]
     }
-
 
     inner class HomeViewHolder(private val binding: ItemListHomeBinding) :
         RecyclerView.ViewHolder(binding.root), View.OnClickListener {
@@ -73,7 +69,8 @@ class HomeAdapter(private val listener: HomeAdapterListener) :
                 "interactive" -> R.drawable.ic_interactive_85
                 "picture" -> R.drawable.ic_picture_85
                 "audio" -> R.drawable.ic_audio_85
-                else -> throw IllegalArgumentException(typeName)
+                "gallery" -> R.drawable.ic_gallery_85
+                else -> R.drawable.ic_default_85
             }
         }
 
