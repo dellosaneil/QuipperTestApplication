@@ -9,6 +9,7 @@ import com.bumptech.glide.Glide
 import com.example.quippertrainingapplication.R
 import com.example.quippertrainingapplication.api_data.Result
 import com.example.quippertrainingapplication.databinding.ItemListHomeBinding
+import java.util.*
 
 class HomeAdapter(private val listener: HomeAdapterListener) :
     RecyclerView.Adapter<HomeAdapter.HomeViewHolder>() {
@@ -59,17 +60,20 @@ class HomeAdapter(private val listener: HomeAdapterListener) :
 
         fun bind(result: Result) {
             binding.homeRVArticleTitle.text = result.webTitle
-            binding.homeRVPillarName.text = result.pillarName
+            binding.homeRVPillarName.text = result.type.capitalize(Locale.ROOT)
             binding.homeRVPublishedDate.text = result.webPublicationDate.substring(0, 10)
             imagePillar(pillarDrawable(result.type))
 
         }
 
         private fun pillarDrawable(typeName: String): Int {
-            return when(typeName){
+            return when (typeName.toLowerCase(Locale.ROOT)){
                 "article" -> R.drawable.ic_article_85
                 "liveblog" -> R.drawable.ic_liveblog_85
-                else -> R.drawable.ic_navigate_next_24
+                "interactive" -> R.drawable.ic_interactive_85
+                "picture" -> R.drawable.ic_picture_85
+                "audio" -> R.drawable.ic_audio_85
+                else -> throw IllegalArgumentException(typeName)
             }
         }
 

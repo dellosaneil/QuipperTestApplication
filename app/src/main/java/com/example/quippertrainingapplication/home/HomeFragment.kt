@@ -12,6 +12,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.quippertrainingapplication.R
+import com.example.quippertrainingapplication.api_data.Response
+import com.example.quippertrainingapplication.api_data.Result
 import com.example.quippertrainingapplication.databinding.FragmentHomeBinding
 import com.example.quippertrainingapplication.repository.Repository
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -34,9 +36,12 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
             homeViewModelFactory
         ).get(HomeViewModel::class.java)
     }
+
     private var toast: Toast? = null
     private var queryText: String = ""
     private var pageNumber = 1
+    private var articleList = listOf<Result>()
+    private var maxPage = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,16 +56,27 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         createRecyclerView()
         prepareSearchView()
         homeViewModel.getNewsArticles()
-            .doOnNext { homeAdapter.updateResultList(it.results)}
-            .doOnComplete { binding.homeFragmentProgressBar.visibility = View.GONE }
-            .subscribe().isDisposed
+            .doOnNext {
+                homeAdapter.updateResultList(it.results)
+                binding.homeFragmentProgressBar.visibility = View.GONE
+                articleList = it.results
+                maxPage = it.pages
+            }
+            .doOnError{
+                Log.i(TAG, "onStart: ${it.message}")
+            }
+            .subscribe()
     }
 
     override fun onResume() {
         super.onResume()
         binding.homeFragmentButton.setOnClickListener {
-            homeViewModel.newsArticles(queryText, ++pageNumber)
-            Log.i(TAG, "onResume: ")
+            if(pageNumber != maxPage) {
+                homeViewModel.newsArticles(queryText, ++pageNumber)
+                binding.homeFragmentProgressBar.visibility = View.VISIBLE
+            }else{
+                handleToast(getString(R.string.homeFragment_noNextPage))
+            }
         }
     }
 
@@ -85,7 +101,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
     }
 
     override fun articleClicked(position: Int) {
-        TODO("Not yet implemented")
+        Log.i(TAG, "articleClicked: ${articleList[position]}")
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {

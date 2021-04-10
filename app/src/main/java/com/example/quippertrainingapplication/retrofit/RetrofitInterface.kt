@@ -2,7 +2,7 @@ package com.example.quippertrainingapplication.retrofit
 
 import com.example.quippertrainingapplication.api_data.NewsArticles
 import io.reactivex.Observable
-import io.reactivex.Single
+import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -10,17 +10,17 @@ interface RetrofitInterface {
     @GET("search")
     fun retrieveFromGuardianApi(
         @Query("q")
-        query : String = "",
+        query : String,
         @Query("order-by")
-        orderBy : String = "newest",
+        orderBy : String,
         @Query("section")
-        section : String ="news",
+        section : String,
         @Query("page-size")
-        pageSize : Int = 100,
+        pageSize : Int,
         @Query("page")
-        pageNumber : Int = 1,
+        pageNumber : Int,
         @Query("api-key")
-        apiKey : String = "a73fdc06-abdc-462e-af96-3385a41235e2"
+        apiKey : String
     ) : Observable<NewsArticles>
 
 }

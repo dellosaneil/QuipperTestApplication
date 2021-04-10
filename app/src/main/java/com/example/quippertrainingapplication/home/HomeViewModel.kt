@@ -1,9 +1,9 @@
 package com.example.quippertrainingapplication.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.quippertrainingapplication.api_data.Response
 import com.example.quippertrainingapplication.repository.Repository
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers.io
 import io.reactivex.subjects.BehaviorSubject
@@ -20,15 +20,15 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
     fun newsArticles(query: String, pageNumber : Int = 1){
         repository.retrieveFromApi(query = query, pageNumber = pageNumber)
             .subscribeOn(io())
-            .map { it.response }
-            .distinct { it.results }
+            .map{ it.response }
+            .distinct()
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext {
+            .doOnNext{
                 behaviorSubject.onNext(it)
+            }
+            .doOnError {
+                Log.i(TAG, "newsArticles: ${it.message}")
             }
             .subscribe()
     }
-
-
-
 }
