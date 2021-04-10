@@ -15,14 +15,14 @@ private const val TAG = "retrieveDataFromApi()"
 
 class CompareViewModel(private val repository: CryptoRepository) : ViewModel() {
 
-    private val cryptoStatus : PublishSubject<List<Bitcoin>> = PublishSubject.create()
-    private val cryptoList = mutableListOf<Bitcoin>()
+    private val cryptoStatus : PublishSubject<Set<String>> = PublishSubject.create()
+    private val cryptoList = mutableSetOf<String>()
 
 
-    fun retrieveCryptoStatus() = cryptoStatus
+    fun retrieveBitcoinPrice() = cryptoStatus
 
     init {
-        Observable.interval(3, java.util.concurrent.TimeUnit.SECONDS)
+        Observable.interval(1, java.util.concurrent.TimeUnit.SECONDS)
             .subscribeOn(io())
             .doOnSubscribe {
                 retrieveDataFromApi()
@@ -40,7 +40,7 @@ class CompareViewModel(private val repository: CryptoRepository) : ViewModel() {
         repository.retrieveFromCryptoApi()
             .subscribeOn(io())
             .doOnSuccess {
-                cryptoList.add(it)
+                cryptoList.add(it.data.priceUsd)
                 cryptoStatus.onNext(cryptoList)
             }
             .doOnError { Log.i(TAG, "retrieveDataFromApi: ${it.message}") }

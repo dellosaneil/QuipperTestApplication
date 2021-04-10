@@ -1,13 +1,11 @@
 package com.example.quippertrainingapplication.cryptocurrency
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.quippertrainingapplication.api_data.crypto.Bitcoin
 import com.example.quippertrainingapplication.databinding.FragmentCompareBinding
 import com.example.quippertrainingapplication.repository.CryptoRepository
 import com.github.mikephil.charting.data.Entry
@@ -37,7 +35,7 @@ class CompareFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCompareBinding.inflate(inflater, container, false)
-        compareViewModel.retrieveCryptoStatus()
+        compareViewModel.retrieveBitcoinPrice()
             .subscribeOn(AndroidSchedulers.mainThread())
             .doOnNext{
                 plotPoints(it)
@@ -45,13 +43,15 @@ class CompareFragment : Fragment() {
         return binding.root
     }
 
-    private fun plotPoints(bitcoinList: List<Bitcoin>?) {
-        bitcoinList?.let{
+    private fun plotPoints(bitcoinPrice: Set<String>?) {
+        bitcoinPrice?.let{
             val entries = mutableListOf<Entry>()
             it.forEachIndexed { index, bitcoin ->
-                entries.add(Entry(index.toFloat(), bitcoin.data.priceUsd.toFloat()))
+                entries.add(Entry(index.toFloat(), bitcoin.toFloat()))
             }
-            val dataSet = LineDataSet(entries, "Bitcoin Price")
+            val dataSet = LineDataSet(entries, "Bitcoin Price").apply{
+                setDrawValues(false)
+            }
             val lineData = LineData(dataSet)
             binding.compareFragmentCryptoStatus.data = lineData
             binding.compareFragmentCryptoStatus.invalidate()
