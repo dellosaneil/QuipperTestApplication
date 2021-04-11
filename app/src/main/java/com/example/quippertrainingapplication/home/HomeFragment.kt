@@ -17,7 +17,7 @@ import com.example.quippertrainingapplication.api_data.guardian.Result
 import com.example.quippertrainingapplication.databinding.FragmentHomeBinding
 import com.example.quippertrainingapplication.repository.Repository
 import io.reactivex.android.schedulers.AndroidSchedulers
-import rx.subjects.BehaviorSubject
+import io.reactivex.subjects.BehaviorSubject
 
 private const val TAG = "HomeFragment"
 
@@ -38,6 +38,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
     }
 
     private val behaviorSubjectSearchView : BehaviorSubject<String> = BehaviorSubject.create()
+    private val behaviorSubjectPageCount : BehaviorSubject<Int> = BehaviorSubject.createDefault(1)
 
 
     private var toast: Toast? = null
@@ -58,6 +59,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         super.onStart()
         setUpRecyclerView()
         prepareSearchView()
+        subscription()
         homeViewModel.getNewsArticles()
             .doOnNext {
                 homeAdapter.updateResultList(it.results)
@@ -86,7 +88,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         super.onResume()
         binding.homeFragmentButton.setOnClickListener {
             if(pageNumber != maxPage) {
-                homeViewModel.newsArticles(query = queryText, pageNumber = ++pageNumber, observable = behaviorSubjectSearchView)
+                behaviorSubjectPageCount.onNext(++pageNumber)
             }else{
                 handleToast(getString(R.string.homeFragment_noNextPage))
             }
@@ -126,11 +128,17 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         query?.let { nonNullQuery ->
             behaviorSubjectSearchView.onNext(nonNullQuery)
             pageNumber = 1
+            behaviorSubjectPageCount.onNext(pageNumber)
             queryText = nonNullQuery
-            homeViewModel.newsArticles(query = nonNullQuery, observable = behaviorSubjectSearchView)
         }
         return true
     }
+
+    private fun subscription(){
+        homeViewModel.observerSubscription(behaviorSubjectSearchView, behaviorSubjectPageCount)
+    }
+
+
 
     private fun handleToast(message: String) {
         toast?.cancel()
