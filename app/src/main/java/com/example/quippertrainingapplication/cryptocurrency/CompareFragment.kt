@@ -13,6 +13,8 @@ import com.example.quippertrainingapplication.repository.CryptoRepository
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.formatter.IAxisValueFormatter
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers.io
@@ -91,6 +93,8 @@ class CompareFragment : Fragment() {
                 description.isEnabled = false
                 data = lineData
                 axisRight.isEnabled = false
+                xAxis.granularity = 1.0f
+                xAxis.isGranularityEnabled = true
                 invalidate()
             }
         }
@@ -138,6 +142,8 @@ class CompareFragment : Fragment() {
 
         binding.compareFragmentCompare.apply {
             data = lineChartData
+            xAxis.granularity = 1.0f
+            xAxis.isGranularityEnabled = true
             invalidate()
 
         }
