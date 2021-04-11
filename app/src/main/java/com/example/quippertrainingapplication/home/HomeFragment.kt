@@ -16,6 +16,8 @@ import com.example.quippertrainingapplication.RecyclerViewDecorator
 import com.example.quippertrainingapplication.api_data.guardian.Result
 import com.example.quippertrainingapplication.databinding.FragmentHomeBinding
 import com.example.quippertrainingapplication.repository.Repository
+import io.reactivex.android.schedulers.AndroidSchedulers
+import rx.subjects.BehaviorSubject
 
 private const val TAG = "HomeFragment"
 
@@ -34,6 +36,9 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
             homeViewModelFactory
         ).get(HomeViewModel::class.java)
     }
+
+    private val behaviorSubjectSearchView : BehaviorSubject<String> = BehaviorSubject.create()
+
 
     private var toast: Toast? = null
     private var queryText: String = ""
@@ -67,6 +72,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
             }
             .subscribe()
         homeViewModel.getLoadingState()
+            .observeOn(AndroidSchedulers.mainThread())
             .doOnNext {
                 if(it){
                     binding.homeFragmentProgressBar.visibility = View.VISIBLE
@@ -80,7 +86,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         super.onResume()
         binding.homeFragmentButton.setOnClickListener {
             if(pageNumber != maxPage) {
-                homeViewModel.newsArticles(queryText, ++pageNumber)
+                homeViewModel.newsArticles(query = queryText, pageNumber = ++pageNumber, observable = behaviorSubjectSearchView)
             }else{
                 handleToast(getString(R.string.homeFragment_noNextPage))
             }
@@ -118,9 +124,10 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
 
     override fun onQueryTextChange(query: String?): Boolean {
         query?.let { nonNullQuery ->
+            behaviorSubjectSearchView.onNext(nonNullQuery)
             pageNumber = 1
             queryText = nonNullQuery
-            homeViewModel.newsArticles(nonNullQuery)
+            homeViewModel.newsArticles(query = nonNullQuery, observable = behaviorSubjectSearchView)
         }
         return true
     }
