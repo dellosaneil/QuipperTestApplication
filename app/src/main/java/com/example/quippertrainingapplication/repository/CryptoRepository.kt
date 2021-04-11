@@ -4,5 +4,6 @@ import com.example.quippertrainingapplication.retrofit.RetrofitInstance
 
 class CryptoRepository {
 
-    fun retrieveFromCryptoApi() = RetrofitInstance.cryptoApi.retrieveFromCryptoApi()
+    fun retrieveFromCryptoApiBitcoin() = RetrofitInstance.cryptoApi.retrieveFromCryptoApiBitcoin()
+    fun retrieveFromCryptoApiEthereum() = RetrofitInstance.cryptoApi.retrieveFromCryptoApiEthereum()
 }

@@ -7,22 +7,27 @@
     tools:context="cryptocurrency.CompareFragment">
 
     <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/compareFragment_cryptoStatus"
-        android:layout_width="match_parent"
-        android:layout_height="600dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:id="@+id/compareFragment_bitcoin"
+        android:layout_width="205dp"
+        android:layout_height="400dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/compareFragment_ethereum"
+        android:layout_width="205dp"
+        android:layout_height="400dp"
+        app:layout_constraintStart_toEndOf="@+id/compareFragment_bitcoin"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/compareFragment_overAll"
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/compareFragment_compare"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/compareFragment_cryptoStatus" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/compareFragment_ethereum" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

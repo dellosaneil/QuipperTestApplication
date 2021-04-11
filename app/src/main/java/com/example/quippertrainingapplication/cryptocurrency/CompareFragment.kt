@@ -1,6 +1,7 @@
 package com.example.quippertrainingapplication.cryptocurrency
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,26 +36,63 @@ class CompareFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCompareBinding.inflate(inflater, container, false)
-        compareViewModel.retrieveBitcoinPrice()
-            .subscribeOn(AndroidSchedulers.mainThread())
-            .doOnNext{
-                plotPoints(it)
-            }.subscribe()
+        handleBitcoinData()
+        handleEthereumData()
         return binding.root
     }
 
-    private fun plotPoints(bitcoinPrice: Set<String>?) {
-        bitcoinPrice?.let{
+    private fun handleEthereumData() {
+        compareViewModel.retrieveBitcoinPrice()
+            .subscribeOn(AndroidSchedulers.mainThread())
+            .doOnNext{
+                plotPointsEthereum(it)
+            }
+            .doOnError { Log.i(TAG, "onCreateView: ${it.message}")
+            }.subscribe()
+    }
+
+    private fun handleBitcoinData(){
+        compareViewModel.retrieveBitcoinPrice()
+            .subscribeOn(AndroidSchedulers.mainThread())
+            .doOnNext{
+                plotPointsBitcoin(it)
+            }
+            .doOnError { Log.i(TAG, "onCreateView: ${it.message}")
+            }
+            .subscribe()
+    }
+
+    private fun plotPointsEthereum(cryptoPriceStatus: Set<String>?) {
+        cryptoPriceStatus?.let{
+            val entries = mutableListOf<Entry>()
+            it.forEachIndexed { index, ethereum ->
+                entries.add(Entry(index.toFloat(), ethereum.toFloat()))
+            }
+            val dataSet = LineDataSet(entries, "Ethereum Price").apply{
+                setDrawValues(false)
+                setDrawCircles(false)
+            }
+            val lineData = LineData(dataSet)
+            binding.compareFragmentEthereum.data = lineData
+            binding.compareFragmentEthereum.invalidate()
+        }
+    }
+
+
+
+    private fun plotPointsBitcoin(cryptoPriceStatus: Set<String>?) {
+        cryptoPriceStatus?.let{
             val entries = mutableListOf<Entry>()
             it.forEachIndexed { index, bitcoin ->
                 entries.add(Entry(index.toFloat(), bitcoin.toFloat()))
             }
             val dataSet = LineDataSet(entries, "Bitcoin Price").apply{
                 setDrawValues(false)
+                setDrawCircles(false)
             }
             val lineData = LineData(dataSet)
-            binding.compareFragmentCryptoStatus.data = lineData
-            binding.compareFragmentCryptoStatus.invalidate()
+            binding.compareFragmentBitcoin.data = lineData
+            binding.compareFragmentBitcoin.invalidate()
         }
     }
 

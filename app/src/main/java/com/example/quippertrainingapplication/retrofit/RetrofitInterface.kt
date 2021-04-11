@@ -1,6 +1,6 @@
 package com.example.quippertrainingapplication.retrofit
 
-import com.example.quippertrainingapplication.api_data.crypto.Bitcoin
+import com.example.quippertrainingapplication.api_data.crypto.CryptoCurrency
 import com.example.quippertrainingapplication.api_data.guardian.NewsArticles
 import io.reactivex.Single
 import retrofit2.http.GET
@@ -24,6 +24,9 @@ interface RetrofitInterface {
     ) : Single<NewsArticles>
 
     @GET("assets/bitcoin")
-    fun retrieveFromCryptoApi() : Single<Bitcoin>
+    fun retrieveFromCryptoApiBitcoin() : Single<CryptoCurrency>
+
+    @GET("assets/ethereum")
+    fun retrieveFromCryptoApiEthereum() : Single<CryptoCurrency>
 
 }
