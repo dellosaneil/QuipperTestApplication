@@ -1,5 +1,6 @@
 package com.example.quippertrainingapplication.cryptocurrency
 
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,9 +14,11 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.subjects.PublishSubject
 
 
 private const val TAG = "CompareFragment"
+
 class CompareFragment : Fragment() {
     private var _binding: FragmentCompareBinding? = null
     private val binding get() = _binding!!
@@ -36,69 +39,102 @@ class CompareFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCompareBinding.inflate(inflater, container, false)
-        handleBitcoinData()
-        handleEthereumData()
+        val publishSubjectArray = arrayOf(compareViewModel.retrieveBitcoinPrice(), compareViewModel.retrieveEthereumPrice())
+        repeat(publishSubjectArray.size){
+            handleGraphing(publishSubjectArray[it], it)
+        }
+        handleComparisonPercentage()
         return binding.root
     }
 
-    private fun handleEthereumData() {
-        compareViewModel.retrieveBitcoinPrice()
+    private fun handleGraphing(publishSubject: PublishSubject<Set<String>>, indexNumber: Int) {
+        publishSubject
             .subscribeOn(AndroidSchedulers.mainThread())
-            .doOnNext{
-                plotPointsEthereum(it)
+            .doOnNext {
+                plotCryptoCurrencyPoints(it, indexNumber)
             }
-            .doOnError { Log.i(TAG, "onCreateView: ${it.message}")
-            }.subscribe()
-    }
-
-    private fun handleBitcoinData(){
-        compareViewModel.retrieveBitcoinPrice()
-            .subscribeOn(AndroidSchedulers.mainThread())
-            .doOnNext{
-                plotPointsBitcoin(it)
-            }
-            .doOnError { Log.i(TAG, "onCreateView: ${it.message}")
+            .doOnError {
+                Log.i(TAG, "handleGraphing: ${it.message}")
             }
             .subscribe()
     }
 
-    private fun plotPointsEthereum(cryptoPriceStatus: Set<String>?) {
-        cryptoPriceStatus?.let{
+    private fun plotCryptoCurrencyPoints(cryptoPriceStatus: Set<String>?, indexNumber: Int) {
+        val lineChartView = arrayOf(binding.compareFragmentBitcoin, binding.compareFragmentEthereum)
+        val lineChartColor = arrayOf(Color.BLUE, Color.RED)
+        val lineChartLabel = arrayOf("Bitcoin Price", "Ethereum Price")
+        cryptoPriceStatus?.let {
             val entries = mutableListOf<Entry>()
-            it.forEachIndexed { index, ethereum ->
-                entries.add(Entry(index.toFloat(), ethereum.toFloat()))
+            it.forEachIndexed { index, coinsPrice ->
+                entries.add(Entry(index.toFloat(), coinsPrice.toFloat()))
             }
-            val dataSet = LineDataSet(entries, "Ethereum Price").apply{
+            val dataSet = LineDataSet(entries, lineChartLabel[indexNumber]).apply {
                 setDrawValues(false)
                 setDrawCircles(false)
+                color = lineChartColor[indexNumber]
+
             }
             val lineData = LineData(dataSet)
-            binding.compareFragmentEthereum.data = lineData
-            binding.compareFragmentEthereum.invalidate()
+            lineChartView[indexNumber].apply {
+                description.isEnabled = false
+                data = lineData
+                axisRight.isEnabled = false
+                invalidate()
+            }
         }
     }
 
+    private fun handleComparisonPercentage() {
+        compareViewModel.retrieveComparisonPercentage()
+            .subscribeOn(AndroidSchedulers.mainThread())
+            .doOnNext {
+                plotPointsPercentageComparision(it)
+            }
+            .doOnError {
+                Log.i(TAG, "handleComparisonPercentage: ${it.message}")
+            }
+            .subscribe()
+    }
 
-
-    private fun plotPointsBitcoin(cryptoPriceStatus: Set<String>?) {
-        cryptoPriceStatus?.let{
-            val entries = mutableListOf<Entry>()
+    private fun plotPointsPercentageComparision(pair: Pair<List<Double>, List<Double>>) {
+        val bitcoinPercentage = mutableListOf<Entry>()
+        val ethereumPercentage = mutableListOf<Entry>()
+        pair.first.let {
             it.forEachIndexed { index, bitcoin ->
-                entries.add(Entry(index.toFloat(), bitcoin.toFloat()))
+                bitcoinPercentage.add(Entry(index.toFloat(), bitcoin.toFloat()))
             }
-            val dataSet = LineDataSet(entries, "Bitcoin Price").apply{
-                setDrawValues(false)
-                setDrawCircles(false)
+        }
+
+        pair.second.let {
+            it.forEachIndexed { index, ethereum ->
+                ethereumPercentage.add(Entry(index.toFloat(), ethereum.toFloat()))
             }
-            val lineData = LineData(dataSet)
-            binding.compareFragmentBitcoin.data = lineData
-            binding.compareFragmentBitcoin.invalidate()
+        }
+
+        val bitcoinDataSet = LineDataSet(bitcoinPercentage, "Bitcoin % Change").apply {
+            setDrawValues(false)
+            color = Color.BLUE
+        }
+        val ethereumDataSet = LineDataSet(ethereumPercentage, "Ethreum % Change").apply {
+            setDrawValues(false)
+            color = Color.RED
+        }
+
+        val lineChartData = LineData().apply{
+            addDataSet(bitcoinDataSet)
+            addDataSet(ethereumDataSet)
+        }
+
+        binding.compareFragmentCompare.apply {
+            data = lineChartData
+            invalidate()
+
         }
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
+
         _binding = null
     }
 
