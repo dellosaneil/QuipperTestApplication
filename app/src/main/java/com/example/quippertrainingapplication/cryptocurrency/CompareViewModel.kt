@@ -7,30 +7,31 @@ import com.example.quippertrainingapplication.repository.CryptoRepository
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers.io
 import io.reactivex.subjects.PublishSubject
 
 
 private const val TAG = "CompareViewModel"
 
-class CompareViewModel(repository: CryptoRepository) : ViewModel() {
+class CompareViewModel(private val repository: CryptoRepository) : ViewModel() {
 
-    private val bitcoinStatus: PublishSubject<Set<String>> = PublishSubject.create()
-    private val bitcoinPrices = mutableSetOf<String>()
+    private val bitcoinStatus: PublishSubject<Double> = PublishSubject.create()
 
-    private val ethereumStatus: PublishSubject<Set<String>> = PublishSubject.create()
-    private val ethereumPrices = mutableSetOf<String>()
+    private val ethereumStatus: PublishSubject<Double> = PublishSubject.create()
 
-    private val comparedStatus: PublishSubject<Pair<List<Double>, List<Double>>> =
+    private val comparedStatus: PublishSubject<Pair<Double, Double>> =
         PublishSubject.create()
-
-    private val ethereumPercentages = mutableListOf<Double>()
-    private val bitcoinPercentages = mutableListOf<Double>()
 
     private val compositeDisposable = CompositeDisposable()
 
-//    private val disposableArray = arrayOf<Disposable?>(null, null, null)
+    private val prevValueArray = arrayOf(1.0,1.0)
+    private var firstCalculation = true
+
+    private val distinctValueCheck = arrayOf(0.0, 0.0)
+
+
+
+
 
 
     fun retrieveBitcoinPrice() = bitcoinStatus
@@ -39,30 +40,36 @@ class CompareViewModel(repository: CryptoRepository) : ViewModel() {
 
 
     init {
+        initializeCrypto()
+        comparisonBetweenCrypto()
+    }
+
+    private fun initializeCrypto(){
         val repositoryFunctions = arrayOf(
             repository.retrieveFromCryptoApiBitcoin(),
             repository.retrieveFromCryptoApiEthereum()
         )
         val interval = arrayOf(2L, 6L)
-        val setPrices = listOf(bitcoinPrices, ethereumPrices)
         val publishStatus = listOf(bitcoinStatus, ethereumStatus)
         repeat(interval.size) { indexNumber ->
             Observable.interval(interval[indexNumber], java.util.concurrent.TimeUnit.SECONDS)
                 .subscribeOn(io())
+
                 .doOnSubscribe {
                     compositeDisposable.add(it)
-//                    disposableArray[indexNumber] = it
                     retrieveCryptoCurrency(
                         repositoryFunctions[indexNumber],
-                        setPrices[indexNumber],
-                        publishStatus[indexNumber]
+                        publishStatus[indexNumber],
+                        distinctValueCheck[indexNumber],
+                        indexNumber
                     )
                 }
                 .doOnNext {
                     retrieveCryptoCurrency(
                         repositoryFunctions[indexNumber],
-                        setPrices[indexNumber],
-                        publishStatus[indexNumber]
+                        publishStatus[indexNumber],
+                        distinctValueCheck[indexNumber],
+                        indexNumber
                     )
                 }
                 .doOnError { error ->
@@ -70,29 +77,34 @@ class CompareViewModel(repository: CryptoRepository) : ViewModel() {
                 }
                 .subscribe()
         }
-        comparisonBetweenCrypto()
     }
+
 
     private fun comparisonBetweenCrypto() {
         Observable.zip(bitcoinStatus, ethereumStatus) { bitcoin, ethereum ->
-            val first: Double
-            val second: Double
-            if (bitcoin.size >= 2) {
-                first = calculatePercentageChange(bitcoin.last().toDouble(), bitcoin.elementAt(bitcoin.size - 2).toDouble())
-                second = calculatePercentageChange(ethereum.last().toDouble(), ethereum.elementAt(ethereum.size - 2).toDouble())
-                ethereumPercentages.add(second)
-                bitcoinPercentages.add(first)
-                bitcoinPercentages to ethereumPercentages
-            } else {
-                listOf<Double>() to listOf<Double>()
+            if(!firstCalculation){
+                val first: Double = calculatePercentageChange(bitcoin, prevValueArray[0])
+                val second: Double = calculatePercentageChange(ethereum, prevValueArray[1])
+                prevValueArray[0] = bitcoin
+                prevValueArray[1] = ethereum
+                first to second
+            }else{
+                firstCalculation = false
+                prevValueArray[0] = bitcoin
+                prevValueArray[1] = ethereum
+                0.0 to 0.0
             }
         }
             .subscribeOn(io())
             .doOnSubscribe {
                 compositeDisposable.add(it)
-//                disposableArray[2] = it
-             }
-            .doOnNext { comparedStatus.onNext(it) }
+            }
+            .doOnNext {
+                if(it.first != 0.0 && it.second != 0.0) {
+                    Log.i(TAG, "prevBitcoin: ${it.first}\t\t\t\tprevEth: ${it.second} ")
+                    comparedStatus.onNext(it)
+                }
+            }
             .doOnError { Log.i(TAG, "comparisonBetweenCrypto: ${it.message}") }
             .subscribe()
     }
@@ -103,15 +115,20 @@ class CompareViewModel(repository: CryptoRepository) : ViewModel() {
 
     private fun retrieveCryptoCurrency(
         single: Single<CryptoCurrency>,
-        priceSets: MutableSet<String>,
-        publishSubject: PublishSubject<Set<String>>
+        publishSubject: PublishSubject<Double>,
+        previousValue: Double,
+        indexNumber: Int
     ) {
         single
             .subscribeOn(io())
             .doOnError { Log.i(TAG, "retrieveCryptoCurrency: ${it.message}") }
+            .map{
+                it.data.priceUsd.toDouble()
+            }
             .doOnSuccess {
-                if (priceSets.add(it.data.priceUsd)) {
-                    publishSubject.onNext(priceSets)
+                if(previousValue != it){
+                    publishSubject.onNext(it)
+                    distinctValueCheck[indexNumber] = it
                 }
             }
             .subscribe()

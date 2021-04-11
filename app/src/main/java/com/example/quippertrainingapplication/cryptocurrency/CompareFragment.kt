@@ -13,8 +13,6 @@ import com.example.quippertrainingapplication.repository.CryptoRepository
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.formatter.IAxisValueFormatter
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers.io
@@ -30,6 +28,10 @@ class CompareFragment : Fragment() {
     private val compareViewModelFactory: CompareFragmentViewModelFactory by lazy {
         CompareFragmentViewModelFactory(repository)
     }
+    private val bitcoinPrices = mutableListOf<Double>()
+    private val ethereumPrices = mutableListOf<Double>()
+    private val comparisonPercentages = Pair<MutableList<Double>, MutableList<Double>>(mutableListOf(), mutableListOf())
+
 
     private val compareViewModel: CompareViewModel by lazy {
         ViewModelProvider(
@@ -47,18 +49,24 @@ class CompareFragment : Fragment() {
             compareViewModel.retrieveBitcoinPrice(),
             compareViewModel.retrieveEthereumPrice()
         )
+        val cryptoDataArray = arrayOf(bitcoinPrices, ethereumPrices)
         repeat(publishSubjectArray.size){
-            handleGraphing(publishSubjectArray[it], it)
+            handleGraphing(publishSubjectArray[it],cryptoDataArray, it)
         }
         handleComparisonPercentage()
         return binding.root
     }
 
-    private fun handleGraphing(publishSubject: PublishSubject<Set<String>>, indexNumber: Int) {
-        publishSubject
+    private fun handleGraphing(
+        newestEmittedItem: PublishSubject<Double>,
+        cryptoDataArray: Array<MutableList<Double>>,
+        indexNumber: Int
+    ) {
+        newestEmittedItem
             .compose(applySchedulers())
             .doOnNext {
-                plotCryptoCurrencyPoints(it, indexNumber)
+                cryptoDataArray[indexNumber].add(it.toDouble())
+                plotCryptoCurrencyPoints(cryptoDataArray[indexNumber], indexNumber)
             }
             .doOnError {
                 Log.i(TAG, "handleGraphing: ${it.message}")
@@ -74,11 +82,11 @@ class CompareFragment : Fragment() {
     }
 
 
-    private fun plotCryptoCurrencyPoints(cryptoPriceStatus: Set<String>?, indexNumber: Int) {
+    private fun plotCryptoCurrencyPoints(cryptoPriceStatus: MutableList<Double>, indexNumber: Int) {
         val lineChartView = arrayOf(binding.compareFragmentBitcoin, binding.compareFragmentEthereum)
         val lineChartColor = arrayOf(Color.BLUE, Color.RED)
         val lineChartLabel = arrayOf("Bitcoin Price", "Ethereum Price")
-        cryptoPriceStatus?.let {
+        cryptoPriceStatus.let {
             val entries = mutableListOf<Entry>()
             it.forEachIndexed { index, coinsPrice ->
                 entries.add(Entry(index.toFloat(), coinsPrice.toFloat()))
@@ -104,7 +112,9 @@ class CompareFragment : Fragment() {
         compareViewModel.retrieveComparisonPercentage()
             .compose(applySchedulers())
             .doOnNext {
-                plotPointsPercentageComparision(it)
+                comparisonPercentages.first.add(it.first)
+                comparisonPercentages.second.add(it.second)
+                plotPointsPercentageComparision()
             }
             .doOnError {
                 Log.i(TAG, "handleComparisonPercentage: ${it.message}")
@@ -112,16 +122,16 @@ class CompareFragment : Fragment() {
             .subscribe()
     }
 
-    private fun plotPointsPercentageComparision(pair: Pair<List<Double>, List<Double>>) {
+    private fun plotPointsPercentageComparision() {
         val bitcoinPercentage = mutableListOf<Entry>()
         val ethereumPercentage = mutableListOf<Entry>()
-        pair.first.let {
+        comparisonPercentages.first.let {
             it.forEachIndexed { index, bitcoin ->
                 bitcoinPercentage.add(Entry(index.toFloat(), bitcoin.toFloat()))
             }
         }
 
-        pair.second.let {
+        comparisonPercentages.second.let {
             it.forEachIndexed { index, ethereum ->
                 ethereumPercentage.add(Entry(index.toFloat(), ethereum.toFloat()))
             }

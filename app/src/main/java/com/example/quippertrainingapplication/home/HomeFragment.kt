@@ -59,7 +59,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         super.onStart()
         setUpRecyclerView()
         prepareSearchView()
-        subscription()
+        subscriptionToHomeViewModel()
         homeViewModel.getNewsArticles()
             .doOnNext {
                 homeAdapter.updateResultList(it.results)
@@ -134,7 +134,7 @@ class HomeFragment : Fragment(), HomeAdapter.HomeAdapterListener, SearchView.OnQ
         return true
     }
 
-    private fun subscription(){
+    private fun subscriptionToHomeViewModel(){
         homeViewModel.observerSubscription(behaviorSubjectSearchView, behaviorSubjectPageCount)
     }
 
