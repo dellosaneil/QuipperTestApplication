@@ -102,6 +102,7 @@ class CompareFragment : Fragment() {
 
     private fun handleComparisonPercentage() {
         compareViewModel.retrieveComparisonPercentage()
+            .compose(applySchedulers())
             .doOnNext {
                 plotPointsPercentageComparision(it)
             }
@@ -128,10 +129,14 @@ class CompareFragment : Fragment() {
 
         val bitcoinDataSet = LineDataSet(bitcoinPercentage, "Bitcoin % Change").apply {
             setDrawValues(false)
+            setCircleColor(Color.BLUE)
+            circleHoleColor = Color.BLUE
             color = Color.BLUE
         }
         val ethereumDataSet = LineDataSet(ethereumPercentage, "Ethreum % Change").apply {
             setDrawValues(false)
+            setCircleColor(Color.RED)
+            circleHoleColor = Color.RED
             color = Color.RED
         }
 
@@ -145,7 +150,6 @@ class CompareFragment : Fragment() {
             xAxis.granularity = 1.0f
             xAxis.isGranularityEnabled = true
             invalidate()
-
         }
     }
 

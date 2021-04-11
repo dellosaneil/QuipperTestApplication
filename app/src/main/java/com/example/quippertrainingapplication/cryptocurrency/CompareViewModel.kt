@@ -6,6 +6,7 @@ import com.example.quippertrainingapplication.api_data.crypto.CryptoCurrency
 import com.example.quippertrainingapplication.repository.CryptoRepository
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers.io
 import io.reactivex.subjects.PublishSubject
@@ -27,7 +28,9 @@ class CompareViewModel(repository: CryptoRepository) : ViewModel() {
     private val ethereumPercentages = mutableListOf<Double>()
     private val bitcoinPercentages = mutableListOf<Double>()
 
-    private val disposableArray = arrayOf<Disposable?>(null, null, null)
+    private val compositeDisposable = CompositeDisposable()
+
+//    private val disposableArray = arrayOf<Disposable?>(null, null, null)
 
 
     fun retrieveBitcoinPrice() = bitcoinStatus
@@ -47,7 +50,8 @@ class CompareViewModel(repository: CryptoRepository) : ViewModel() {
             Observable.interval(interval[indexNumber], java.util.concurrent.TimeUnit.SECONDS)
                 .subscribeOn(io())
                 .doOnSubscribe {
-                    disposableArray[indexNumber] = it
+                    compositeDisposable.add(it)
+//                    disposableArray[indexNumber] = it
                     retrieveCryptoCurrency(
                         repositoryFunctions[indexNumber],
                         setPrices[indexNumber],
@@ -85,7 +89,8 @@ class CompareViewModel(repository: CryptoRepository) : ViewModel() {
         }
             .subscribeOn(io())
             .doOnSubscribe {
-                disposableArray[2] = it
+                compositeDisposable.add(it)
+//                disposableArray[2] = it
              }
             .doOnNext { comparedStatus.onNext(it) }
             .doOnError { Log.i(TAG, "comparisonBetweenCrypto: ${it.message}") }
@@ -114,9 +119,7 @@ class CompareViewModel(repository: CryptoRepository) : ViewModel() {
 
     override fun onCleared() {
         super.onCleared()
-        disposableArray.forEach{
-            it?.dispose()
-        }
+        compositeDisposable.clear()
     }
 
 
