@@ -34,6 +34,7 @@ class CompareViewModel(repository: CryptoRepository) : ViewModel() {
     fun retrieveEthereumPrice() = ethereumStatus
     fun retrieveComparisonPercentage() = comparedStatus
 
+
     init {
         val repositoryFunctions = arrayOf(
             repository.retrieveFromCryptoApiBitcoin(),
@@ -81,29 +82,18 @@ class CompareViewModel(repository: CryptoRepository) : ViewModel() {
             } else {
                 listOf<Double>() to listOf<Double>()
             }
-        }.doOnSubscribe {
-            disposableArray[2] = it
         }
+            .subscribeOn(io())
+            .doOnSubscribe {
+                disposableArray[2] = it
+             }
             .doOnNext { comparedStatus.onNext(it) }
             .doOnError { Log.i(TAG, "comparisonBetweenCrypto: ${it.message}") }
             .subscribe()
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        disposableArray.forEach{
-            it?.dispose()
-        }
-
-    }
-
-
     private fun calculatePercentageChange(currentPrice: Double, prevPrice: Double): Double {
-        return if (currentPrice - prevPrice > 0) {
-            (currentPrice.div(prevPrice))
-        } else {
-            (currentPrice.div(prevPrice)).times(-1.0)
-        }
+        return (currentPrice - prevPrice).div(prevPrice)
     }
 
     private fun retrieveCryptoCurrency(
@@ -121,5 +111,14 @@ class CompareViewModel(repository: CryptoRepository) : ViewModel() {
             }
             .subscribe()
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        disposableArray.forEach{
+            it?.dispose()
+        }
+    }
+
+
 
 }

@@ -13,7 +13,9 @@ import com.example.quippertrainingapplication.repository.CryptoRepository
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import io.reactivex.ObservableTransformer
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers.io
 import io.reactivex.subjects.PublishSubject
 
 
@@ -39,7 +41,10 @@ class CompareFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCompareBinding.inflate(inflater, container, false)
-        val publishSubjectArray = arrayOf(compareViewModel.retrieveBitcoinPrice(), compareViewModel.retrieveEthereumPrice())
+        val publishSubjectArray = arrayOf(
+            compareViewModel.retrieveBitcoinPrice(),
+            compareViewModel.retrieveEthereumPrice()
+        )
         repeat(publishSubjectArray.size){
             handleGraphing(publishSubjectArray[it], it)
         }
@@ -49,7 +54,7 @@ class CompareFragment : Fragment() {
 
     private fun handleGraphing(publishSubject: PublishSubject<Set<String>>, indexNumber: Int) {
         publishSubject
-            .subscribeOn(AndroidSchedulers.mainThread())
+            .compose(applySchedulers())
             .doOnNext {
                 plotCryptoCurrencyPoints(it, indexNumber)
             }
@@ -58,6 +63,14 @@ class CompareFragment : Fragment() {
             }
             .subscribe()
     }
+
+    private fun <T> applySchedulers(): ObservableTransformer<T, T> {
+        return ObservableTransformer<T, T> {
+            it.subscribeOn(io())
+                .observeOn(AndroidSchedulers.mainThread())
+        }
+    }
+
 
     private fun plotCryptoCurrencyPoints(cryptoPriceStatus: Set<String>?, indexNumber: Int) {
         val lineChartView = arrayOf(binding.compareFragmentBitcoin, binding.compareFragmentEthereum)
@@ -72,7 +85,6 @@ class CompareFragment : Fragment() {
                 setDrawValues(false)
                 setDrawCircles(false)
                 color = lineChartColor[indexNumber]
-
             }
             val lineData = LineData(dataSet)
             lineChartView[indexNumber].apply {
@@ -86,7 +98,6 @@ class CompareFragment : Fragment() {
 
     private fun handleComparisonPercentage() {
         compareViewModel.retrieveComparisonPercentage()
-            .subscribeOn(AndroidSchedulers.mainThread())
             .doOnNext {
                 plotPointsPercentageComparision(it)
             }
@@ -137,6 +148,4 @@ class CompareFragment : Fragment() {
 
         _binding = null
     }
-
-
 }
