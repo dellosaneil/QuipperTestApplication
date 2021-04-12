@@ -30,10 +30,6 @@ class CompareViewModel(private val repository: CryptoRepository) : ViewModel() {
     private val distinctValueCheck = arrayOf(0.0, 0.0)
 
 
-
-
-
-
     fun retrieveBitcoinPrice() = bitcoinStatus
     fun retrieveEthereumPrice() = ethereumStatus
     fun retrieveComparisonPercentage() = comparedStatus
@@ -54,7 +50,6 @@ class CompareViewModel(private val repository: CryptoRepository) : ViewModel() {
         repeat(interval.size) { indexNumber ->
             Observable.interval(interval[indexNumber], java.util.concurrent.TimeUnit.SECONDS)
                 .subscribeOn(io())
-
                 .doOnSubscribe {
                     compositeDisposable.add(it)
                     retrieveCryptoCurrency(
@@ -110,7 +105,7 @@ class CompareViewModel(private val repository: CryptoRepository) : ViewModel() {
     }
 
     private fun calculatePercentageChange(currentPrice: Double, prevPrice: Double): Double {
-        return (currentPrice - prevPrice).div(prevPrice)
+        return (currentPrice - prevPrice).div(prevPrice).times(100)
     }
 
     private fun retrieveCryptoCurrency(

@@ -2,6 +2,7 @@ package com.example.quippertrainingapplication.home
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.example.quippertrainingapplication.api_data.guardian.NewsArticles
 import com.example.quippertrainingapplication.api_data.guardian.Response
 import com.example.quippertrainingapplication.repository.Repository
 import io.reactivex.Observable
@@ -32,47 +33,48 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
         queryObservable: BehaviorSubject<String>,
         pageCountObservable: BehaviorSubject<Int>
     ) {
-        Observable.combineLatest(queryObservable.debounce (500, TimeUnit.MILLISECONDS), pageCountObservable.distinctUntilChanged()) { query, pageCount ->
+        val observable = Observable.combineLatest(
+            queryObservable.debounce(500, TimeUnit.MILLISECONDS),
+            pageCountObservable.distinctUntilChanged()
+        ) { query, pageCount ->
             query to pageCount
-        }.doOnNext {
-            retrieveFromRetrofit(it.first, it.second)
-        }.doOnSubscribe {
-            compositeDisposable.add(it)
         }
-            .subscribe()
-    }
-
-
-    private fun retrieveFromRetrofit(query: String, pageNumber: Int) {
-        repository.retrieveFromApi(query = query, pageNumber = pageNumber)
-            .compose(applySchedulers())
-            .doOnSubscribe { observerLoadingState.onNext(true) }
+            .observeOn(io())
+            .compose(repositoryTransformer())
+            .observeOn(AndroidSchedulers.mainThread())
             .map { it.response }
-            .doOnSuccess {
-                Log.i(TAG, "REPOSITORY ")
+            .doOnNext {
                 publishSubject.onNext(it)
                 observerLoadingState.onNext(false)
             }
             .doOnError {
                 Log.i(TAG, "newsArticles: ${it.message}")
             }
-            .subscribe()
+            .subscribe({
+                Log.i(TAG, "observerSubscription: $it")
+            }, {
+                Log.i(TAG, "observerSubscription: ${it.message}")
+            })
+        compositeDisposable.add(observable)
     }
 
+    private fun repositoryTransformer(): ObservableTransformer<Pair<String, Int>, NewsArticles> {
+        return ObservableTransformer<Pair<String, Int>, NewsArticles>{
+            it.flatMap{ queryDetails ->
+                repository.retrieveFromApi(query = queryDetails.first, pageNumber = queryDetails.second).toObservable()
+            }
+        }
+    }
 
-    private fun <T> applySchedulers(): SingleTransformer<T, T> {
-        return SingleTransformer<T, T> {
+    private fun <T> applyObservableSchedulers(): ObservableTransformer<T, T> {
+        return ObservableTransformer<T, T> {
             it.subscribeOn(io())
                 .observeOn(AndroidSchedulers.mainThread())
         }
     }
 
-
     override fun onCleared() {
         super.onCleared()
         compositeDisposable.clear()
-
     }
-
-
 }
